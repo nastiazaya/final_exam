@@ -1,7 +1,10 @@
 package com.example.final_exam.controller;
 
 
+import com.example.final_exam.model.spark.SuspiciousActivityReport;
+import com.example.final_exam.service.SuspiciousActivityService;
 import org.apache.spark.sql.Row;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,10 +18,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping(path = {"/suspicious-activities"}, produces = APPLICATION_JSON_VALUE)
 public class SuspiciousActivityController {
 
+    @Autowired
+    private SuspiciousActivityService suspiciousActivityService;
+
     @GetMapping
-    public String suspiciousActivityForATimePeriod(@RequestParam Instant from,
-                                                                      @RequestParam Instant to){
-        return "";
+    public ResponseEntity<List<SuspiciousActivityReport>> suspiciousActivityForATimePeriod(@RequestParam Instant from,
+                                                                                           @RequestParam Instant to) {
+        List<SuspiciousActivityReport> suspiciousActivityReport = suspiciousActivityService.findSuspiciousActivitiesForATimePeriod(from, to);
+        return ResponseEntity.ok(suspiciousActivityReport);
     }
 
 

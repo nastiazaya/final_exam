@@ -1,6 +1,6 @@
 package com.example.final_exam.repository;
 
-import com.example.final_exam.model.BetEvent;
+import com.example.final_exam.model.spark.BetEvent;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.Row;

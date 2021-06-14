@@ -1,11 +1,8 @@
-package com.example.final_exam.model;
+package com.example.final_exam.model.jpa;
 
 import lombok.Data;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Data
 @Entity
@@ -17,6 +14,6 @@ public class User {
     @Column(name = "last_name")
     private String lastName;
     @Column(name = "country_of_origin")
-    private Country countryOfOrigin;
+    private String countryOfOrigin;
     private String email;
 }
