@@ -1,12 +1,12 @@
 package com.example.final_exam.model;
 
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public class BetEvent {
 
     private long eventId;
-    private LocalDateTime eventTime;
+    private Instant eventTime;
     private Country country;
     private Currencies currencyCode;
     private long userId;

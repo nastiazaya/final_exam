@@ -2,6 +2,7 @@ package com.example.final_exam.controller;
 
 
 import com.example.final_exam.model.BetEvent;
+import org.apache.spark.sql.DataFrame;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +15,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class SuspiciousActivityController {
 
     @GetMapping
-    public String suspiciousActivityForATimePeriod(@RequestParam LocalDateTime from,
-                                                                     @RequestParam LocalDateTime to){
-        return to.toString();
+    public ResponseEntity<DataFrame> suspiciousActivityForATimePeriod(@RequestParam LocalDateTime from,
+                                                                      @RequestParam LocalDateTime to){
+        return ResponseEntity.;
     }
 
 

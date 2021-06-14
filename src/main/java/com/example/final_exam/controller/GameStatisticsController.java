@@ -17,8 +17,8 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class GameStatisticsController {
 
     @GetMapping
-    public String gameStatistics(@RequestParam LocalDateTime from, @RequestParam LocalDateTime to,
+    public ResponseEntity<BetEvent> gameStatistics(@RequestParam LocalDateTime from, @RequestParam LocalDateTime to,
                                                    @RequestParam(required = false) String gameName){
-        return from.toString();
+        return ResponseEntity;
     }
 }
