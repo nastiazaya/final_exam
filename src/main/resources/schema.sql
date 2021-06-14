@@ -1,5 +1,5 @@
-CREATE DATABASE IF NOT EXISTS game_platform;
-USE game_platform;
+/*CREATE DATABASE IF NOT EXISTS game_platform;
+USE game_platform;*/
 
 CREATE TABLE IF NOT EXISTS users (
     id INT NOT NULL,

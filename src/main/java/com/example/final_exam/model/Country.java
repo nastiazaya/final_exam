@@ -1,7 +1,7 @@
 package com.example.final_exam.model;
 
 public enum Country {
-    US,
+    USA,
     PL,
     DE
 }
