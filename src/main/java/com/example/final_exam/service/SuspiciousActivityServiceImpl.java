@@ -23,24 +23,15 @@ import java.util.List;
 public class SuspiciousActivityServiceImpl implements SuspiciousActivityService {
 
     @Autowired
-    private SparkSession sparkSession;
-
-
-    @Autowired
     private BetSparkRepository betSparkRepository;
 
     @Autowired
-    private UserRepository userRepository;
-
+    private BetsEnricherComponent betsEnricherComponent;
 
     @Override
     public List<SuspiciousActivityReport> findSuspiciousActivitiesForATimePeriod(Instant from, Instant to){
         Dataset<Row> inputDF = betSparkRepository.readBetEvent();
-        List<User> users = userRepository.findAll();
-        Dataset<Row> usersDF = sparkSession.createDataFrame(users,User.class);
-        Dataset<Row> enrichedWithUserInfoDf = inputDF
-                .join(usersDF,inputDF.col("userId").equalTo(usersDF.col("id")))
-                .drop("id");
+        Dataset<Row> enrichedWithUserInfoDf = betsEnricherComponent.enrichBetsDataWithUserInfo(inputDF);
         Dataset<Row> suspiciousActivities = enrichedWithUserInfoDf
                 .withColumn("win", when(col("eventCurrencyCode").equalTo(Currencies.EUR.toString()), col("win").divide(1.1)).otherwise(col("win")))
                 .withColumn("bet", when(col("eventCurrencyCode").equalTo(Currencies.EUR.toString()), col("bet").divide(1.1)).otherwise(col("bet")))

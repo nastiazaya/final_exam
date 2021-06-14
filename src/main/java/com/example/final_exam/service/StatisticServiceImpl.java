@@ -23,16 +23,12 @@ public class StatisticServiceImpl implements StatisticService {
     private BetSparkRepository betSparkRepository;
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private SparkSession sparkSession;
-
+    private BetsEnricherComponent betsEnricherComponent;
 
     @Override
     public List<StatisticReport> statisticCalculate(Instant from, Instant to){
         Dataset<Row> betsDataDf = getBetsData(from, to);
-        Dataset<Row> betsDataDfEnrichedWithUserInfo = enrichBetsDataWithUserInfo(betsDataDf);
+        Dataset<Row> betsDataDfEnrichedWithUserInfo = betsEnricherComponent.enrichBetsDataWithUserInfo(betsDataDf);
         Dataset<Row> statisticDf = calculateStatistic(betsDataDfEnrichedWithUserInfo);
         return statisticDf.as(Encoders.bean(StatisticReport.class)).collectAsList();
     }
@@ -41,7 +37,7 @@ public class StatisticServiceImpl implements StatisticService {
     public List<StatisticReport> statisticCalculate(Instant from, Instant to, String gameName) {
         Dataset<Row> betsDataDf = getBetsData(from, to);
         Dataset<Row> filteredByGameBetsDataDf = filterEventsByGameName(betsDataDf, gameName);
-        Dataset<Row> betsDataDfEnrichedWithUserInfo = enrichBetsDataWithUserInfo(filteredByGameBetsDataDf);
+        Dataset<Row> betsDataDfEnrichedWithUserInfo = betsEnricherComponent.enrichBetsDataWithUserInfo(filteredByGameBetsDataDf);
         Dataset<Row> statisticDf = calculateStatistic(betsDataDfEnrichedWithUserInfo);
         return statisticDf.as(Encoders.bean(StatisticReport.class)).collectAsList();
     }
@@ -61,14 +57,6 @@ public class StatisticServiceImpl implements StatisticService {
                                 col("gameName").equalTo(gameName + "-demo")
                         )
         );
-    }
-
-    private Dataset<Row> enrichBetsDataWithUserInfo(Dataset<Row> betsDf){
-        List<User> users = userRepository.findAll();
-        Dataset<Row> usersDF = sparkSession.createDataFrame(users, User.class);
-        return betsDf
-                .join(usersDF, betsDf.col("userId").equalTo(usersDF.col("id")))
-                .drop("id");
     }
 
     private Dataset<Row> calculateStatistic(Dataset<Row> input) {
