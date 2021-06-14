@@ -8,4 +8,5 @@ import java.util.List;
 
 public interface StatisticService {
     List<StatisticReport> statisticCalculate(Instant from, Instant to);
+    List<StatisticReport> statisticCalculate(Instant from, Instant to, String gameName);
 }

@@ -35,7 +35,10 @@ public class GameStatisticsController {
     public ResponseEntity<List<StatisticReport>> gameStatistics(@RequestParam Instant from,
                                                                 @RequestParam Instant to,
                                                                 @RequestParam(required = false) Optional<String> gameName){
-        List<StatisticReport> supiciousActivityReport = statisticService.statisticCalculate(from, to);
-        return ResponseEntity.ok(supiciousActivityReport);
+        List<StatisticReport> suspiciousActivityReport = gameName
+                .map(game -> statisticService.statisticCalculate(from, to, game))
+                .orElse(statisticService.statisticCalculate(from, to));
+        //List<StatisticReport> suspiciousActivityReport = statisticService.statisticCalculate(from, to);
+        return ResponseEntity.ok(suspiciousActivityReport);
     }
 }

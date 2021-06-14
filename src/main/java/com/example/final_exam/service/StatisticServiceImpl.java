@@ -28,21 +28,58 @@ public class StatisticServiceImpl implements StatisticService {
     @Autowired
     private SparkSession sparkSession;
 
+
     @Override
     public List<StatisticReport> statisticCalculate(Instant from, Instant to){
-        Dataset<Row> inputDF = betSparkRepository.readBetEvent();
+        Dataset<Row> betsDataDf = getBetsData(from, to);
+        Dataset<Row> betsDataDfEnrichedWithUserInfo = enrichBetsDataWithUserInfo(betsDataDf);
+        Dataset<Row> statisticDf = calculateStatistic(betsDataDfEnrichedWithUserInfo);
+        return statisticDf.as(Encoders.bean(StatisticReport.class)).collectAsList();
+    }
+
+    @Override
+    public List<StatisticReport> statisticCalculate(Instant from, Instant to, String gameName) {
+        Dataset<Row> betsDataDf = getBetsData(from, to);
+        Dataset<Row> filteredByGameBetsDataDf = filterEventsByGameName(betsDataDf, gameName);
+        Dataset<Row> betsDataDfEnrichedWithUserInfo = enrichBetsDataWithUserInfo(filteredByGameBetsDataDf);
+        Dataset<Row> statisticDf = calculateStatistic(betsDataDfEnrichedWithUserInfo);
+        return statisticDf.as(Encoders.bean(StatisticReport.class)).collectAsList();
+    }
+
+    private Dataset<Row> getBetsData(Instant from, Instant to) {
+        return betSparkRepository
+                .readBetEvent()
+                .filter(col("eventTime").$greater(lit(from)))
+                .filter(col("eventTime").$less(lit(to)));
+    }
+
+    private Dataset<Row> getBetsDataByGameName(Instant from, Instant to, String gameName) {
+        return filterEventsByGameName(getBetsData(from, to), gameName);
+    }
+
+    private Dataset<Row> filterEventsByGameName(Dataset<Row> eventsDf, String gameName) {
+        return eventsDf.filter(
+                col("gameName").equalTo(gameName)
+                        .or(
+                                col("gameName").equalTo(gameName + "-demo")
+                        )
+        );
+    }
+
+    private Dataset<Row> enrichBetsDataWithUserInfo(Dataset<Row> betsDf){
         List<User> users = userRepository.findAll();
-        Dataset<Row> usersDF = sparkSession.createDataFrame(users,User.class);
-        Dataset<Row> enrichedWithUserInfoDf = inputDF
-                .join(usersDF,inputDF.col("userId").equalTo(usersDF.col("id")))
+        Dataset<Row> usersDF = sparkSession.createDataFrame(users, User.class);
+        return betsDf
+                .join(usersDF, betsDf.col("userId").equalTo(usersDF.col("id")))
                 .drop("id");
-        System.out.println("enrichedWithUserInfoDf");
-        Dataset<Row> result = enrichedWithUserInfoDf.withColumn("win", when(col("eventCurrencyCode").equalTo(Currencies.EUR.toString()), col("win").divide(1.1)).otherwise(col("win")))
+    }
+
+    private Dataset<Row> calculateStatistic(Dataset<Row> input) {
+        return input
+                .withColumn("win", when(col("eventCurrencyCode").equalTo(Currencies.EUR.toString()), col("win").divide(1.1)).otherwise(col("win")))
                 .withColumn("bet", when(col("eventCurrencyCode").equalTo(Currencies.EUR.toString()), col("bet").divide(1.1)).otherwise(col("bet")))
                 .filter(not(col("countryOfOrigin").equalTo(Country.USA.toString()).and(col("gameName").contains("-demo"))))
-                .filter(col("eventTime").$greater(lit(from)))
-                .filter(col("eventTime").$less(lit(to)))
-                .withColumn("profit",col("win").minus(col("bet")))
+                .withColumn("profit", col("win").minus(col("bet")))
                 .groupBy("gameName")
                 .agg(
                         avg(col("bet")).as("averageBet"),
@@ -55,8 +92,5 @@ public class StatisticServiceImpl implements StatisticService {
                         max(col("profit")).as("maxProfit"),
                         min(col("profit")).as("minProfit")
                 );
-        return result.as(Encoders.bean(StatisticReport.class)).collectAsList();
     }
-
-
 }

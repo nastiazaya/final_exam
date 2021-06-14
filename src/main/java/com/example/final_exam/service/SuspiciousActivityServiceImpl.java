@@ -41,10 +41,6 @@ public class SuspiciousActivityServiceImpl implements SuspiciousActivityService 
         Dataset<Row> enrichedWithUserInfoDf = inputDF
                 .join(usersDF,inputDF.col("userId").equalTo(usersDF.col("id")))
                 .drop("id");
-        System.out.println("enrichedWithUserInfoDf");
-        enrichedWithUserInfoDf.show();
-
-        enrichedWithUserInfoDf.printSchema();
         Dataset<Row> suspiciousActivities = enrichedWithUserInfoDf
                 .withColumn("win", when(col("eventCurrencyCode").equalTo(Currencies.EUR.toString()), col("win").divide(1.1)).otherwise(col("win")))
                 .withColumn("bet", when(col("eventCurrencyCode").equalTo(Currencies.EUR.toString()), col("bet").divide(1.1)).otherwise(col("bet")))
@@ -63,9 +59,6 @@ public class SuspiciousActivityServiceImpl implements SuspiciousActivityService 
                 .withColumn("suspiciousActivity", when(col("onlineTimeSecs").$greater(lit(18000)),"yes").otherwise("no"))
                 .filter(col("suspiciousActivity").equalTo("yes"))
                 .drop("suspiciousActivity");
-        System.out.println("suspiciousActivities");
-        suspiciousActivities.show();
-        suspiciousActivities.printSchema();
         return suspiciousActivities.as(Encoders.bean(SuspiciousActivityReport.class)).collectAsList();
     }
 
