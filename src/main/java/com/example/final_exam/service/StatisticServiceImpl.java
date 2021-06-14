@@ -53,9 +53,6 @@ public class StatisticServiceImpl implements StatisticService {
                 .filter(col("eventTime").$less(lit(to)));
     }
 
-    private Dataset<Row> getBetsDataByGameName(Instant from, Instant to, String gameName) {
-        return filterEventsByGameName(getBetsData(from, to), gameName);
-    }
 
     private Dataset<Row> filterEventsByGameName(Dataset<Row> eventsDf, String gameName) {
         return eventsDf.filter(
